@@ -1,4 +1,4 @@
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app_dvm/models.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -31,6 +31,7 @@ class _SettingsState extends State<Settings> {
         } else if (selectedValue == 'system') {
           AdaptiveTheme.of(context).setSystem();
         }
+        Navigator.pop(context, {'units': _dropdownValue2, 'theme': selectedValue});
       }
     }
 
@@ -44,6 +45,7 @@ class _SettingsState extends State<Settings> {
         } else if (selectedValue == 'fahrenheit') {
           AppState.selectedTemperatureUnit = 'fahrenheit';
         }
+        Navigator.pop(context, {'units': selectedValue, 'theme': _dropdownValue1});
       }
     }
 

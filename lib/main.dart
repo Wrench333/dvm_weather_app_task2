@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 //import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -102,8 +102,7 @@ class _HomeState extends State<Home> {
   Weather? weather;
   Hourly_Forecast? hourly_forecast;
   Daily_Forecast? daily_forecast;
-  //List<double> minTemperatures = [];
-  //List<double> maxTemperatures = [];
+  late SharedPreferences _prefs;
 
   //Location location = Location();
   Position? position;
@@ -111,11 +110,34 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    _initPreferences();
     _fetchWeather();
     _fetchForecast();
     //requestPermission();
     //_fetchLocation();
     _determinePosition();
+  }
+
+  void _initPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+    String? savedUnit = _prefs.getString('temperature_unit');
+    if (savedUnit != null) {
+      setState(() {
+        AppState.selectedTemperatureUnit = savedUnit;
+      });
+    }
+  }
+
+  void _saveTheme(String newTheme) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('theme', newTheme);
+  }
+
+  Future<void> _saveTemperatureUnit(String unit) async {
+    await _prefs.setString('temperature_unit', unit);
+    setState(() {
+      AppState.selectedTemperatureUnit = unit;
+    });
   }
 
   /*Future<bool> requestPermission() async {
@@ -255,8 +277,22 @@ class _HomeState extends State<Home> {
             ),
           ),
           IconButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/settings');
+            onPressed: () async {
+              Map<String, String>? settings = await Navigator.push<Map<String, String>>(
+                context,
+                MaterialPageRoute(builder: (context) => Settings()),
+              );
+              if (settings != null) {
+                String? selectedUnits = settings['units'];
+                String? selectedTheme = settings['theme'];
+                // Handle the selected units and theme accordingly
+                if (selectedUnits != null) {
+                  // Update units in your app
+                }
+                if (selectedTheme != null) {
+                  // Update theme in your app
+                }
+              }
             },
             icon: Icon(
               Icons.settings,

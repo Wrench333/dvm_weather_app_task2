@@ -114,6 +114,12 @@ class AppState {
   static String selectedTemperatureUnit = 'celsius';
 }
 
+class ChartData {
+  ChartData(this.x, this.y);
+  final String x;
+  final double? y;
+}
+
 /*class Hourly_Forecast
  {
   final String hour1;

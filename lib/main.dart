@@ -30,8 +30,6 @@ class MyApp extends StatelessWidget {
         routes: {
           '/home': (context) => Home(),
           '/settings': (context) => Settings(),
-          '/manage': (context) => Manage_Cities(),
-          '/stats': (context) => Statistics(),
         },
       ),
     );
@@ -104,6 +102,8 @@ class _HomeState extends State<Home> {
   Weather? weather;
   Hourly_Forecast? hourly_forecast;
   Daily_Forecast? daily_forecast;
+  //List<double> minTemperatures = [];
+  //List<double> maxTemperatures = [];
 
   //Location location = Location();
   Position? position;
@@ -238,7 +238,17 @@ class _HomeState extends State<Home> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/manage');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Manage_Cities(
+                    cityName: cityName!,
+                    // Replace with your cityName variable
+                    temperature: weather?.temperature ??
+                        0, // Replace with your temperature variable
+                  ),
+                ),
+              );
             },
             icon: Icon(
               Icons.location_city,
@@ -366,11 +376,23 @@ class _HomeState extends State<Home> {
                 ],
               ),
             ),
-            SizedBox(height: 10.0,),
+            SizedBox(
+              height: 10.0,
+            ),
             Container(
               width: size.width,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Statistics(
+                        minTemperatures: daily_forecast?.min_temperatures ?? [],
+                        maxTemperatures: daily_forecast?.max_temperatures ?? [],
+                      ),
+                    ),
+                  );
+                },
                 child: Text("Statistics"),
               ),
             ),

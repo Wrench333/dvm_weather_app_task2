@@ -42,3 +42,21 @@ class WeatherService {
     }
   }
 }
+
+class WeatherApi {
+  static Future<List<String>> searchCities(String query) async {
+    final response = await http.get(
+      Uri.parse('http://api.openweathermap.org/data/2.5/find?q=$query&type=like&sort=population&cnt=30&appid=418e2fa8d6411ce63ca657ad379712fb'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List<String> cityNames = (data['list'] as List)
+          .map((city) => city['name'].toString())
+          .toList();
+      return cityNames;
+    } else {
+      throw Exception('Failed to search cities');
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
+
 //import 'package:location/location.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -74,8 +75,8 @@ class ForecastRow extends StatelessWidget {
 
   ForecastRow(
       {required this.date,
-        required this.minTemperature,
-        required this.maxTemperature});
+      required this.minTemperature,
+      required this.maxTemperature});
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +100,7 @@ class _HomeState extends State<Home> {
   String? cityName = 'Chennai';
   final String apiKey = '418e2fa8d6411ce63ca657ad379712fb';
   final WeatherService weatherService =
-  WeatherService('418e2fa8d6411ce63ca657ad379712fb');
+      WeatherService('418e2fa8d6411ce63ca657ad379712fb');
   Weather? weather;
   Hourly_Forecast? hourly_forecast;
   Daily_Forecast? daily_forecast;
@@ -183,7 +184,7 @@ class _HomeState extends State<Home> {
     // When we reach here, permissions are granted and we can
     // continue accessing the position of the device.
     position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best)
+            desiredAccuracy: LocationAccuracy.best)
         .timeout(Duration(seconds: 5));
 
     List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -237,7 +238,7 @@ class _HomeState extends State<Home> {
         actions: [
           IconButton(
             onPressed: () {
-              AdaptiveTheme.of(context).setLight();
+              Navigator.pushNamed(context, '/manage');
             },
             icon: Icon(
               Icons.location_city,
@@ -312,8 +313,8 @@ class _HomeState extends State<Home> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       for (int i = 0;
-                      i < (hourly_forecast?.hours.length ?? 0);
-                      i++)
+                          i < (hourly_forecast?.hours.length ?? 0);
+                          i++)
                         Column(
                           children: [
                             Text(
@@ -350,8 +351,8 @@ class _HomeState extends State<Home> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       for (int i = 0;
-                      i < (daily_forecast?.dates.length ?? 0);
-                      i++)
+                          i < (daily_forecast?.dates.length ?? 0);
+                          i++)
                         ForecastRow(
                           date: daily_forecast?.dates[i]?.substring(5, 10) ??
                               'N/A',
@@ -364,7 +365,15 @@ class _HomeState extends State<Home> {
                   ),
                 ],
               ),
-            )
+            ),
+            SizedBox(height: 10.0,),
+            Container(
+              width: size.width,
+              child: ElevatedButton(
+                onPressed: () {},
+                child: Text("Statistics"),
+              ),
+            ),
           ],
         ),
       ),

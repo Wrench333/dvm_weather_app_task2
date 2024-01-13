@@ -263,11 +263,10 @@ class _HomeState extends State<Home> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => Manage_Cities(
+                  builder: (context) => ManageCities(
                     cityName: cityName!,
-                    // Replace with your cityName variable
                     temperature: weather?.temperature ??
-                        0, // Replace with your temperature variable
+                        0,
                   ),
                 ),
               );
@@ -285,12 +284,11 @@ class _HomeState extends State<Home> {
               if (settings != null) {
                 String? selectedUnits = settings['units'];
                 String? selectedTheme = settings['theme'];
-                // Handle the selected units and theme accordingly
                 if (selectedUnits != null) {
-                  // Update units in your app
+                  _saveTemperatureUnit(selectedUnits);
                 }
                 if (selectedTheme != null) {
-                  // Update theme in your app
+                  _saveTheme(selectedTheme);
                 }
               }
             },

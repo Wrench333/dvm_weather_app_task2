@@ -3,42 +3,65 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:weather_app_dvm/weather_service.dart';
 
-class Manage_Cities extends StatefulWidget {
+List<Map<String, dynamic>> cities = [];
+
+class ManageCities extends StatefulWidget {
   final String cityName;
   final double temperature;
 
-  const Manage_Cities({
+  const ManageCities({
     Key? key,
     required this.cityName,
     required this.temperature,
   }) : super(key: key);
 
   @override
-  State<Manage_Cities> createState() => _Manage_CitiesState();
+  State<ManageCities> createState() => _ManageCitiesState();
 }
 
-class _Manage_CitiesState extends State<Manage_Cities> {
-  void showAddCitiesBottomDrawer() {
-    showModalBottomSheet(
+class _ManageCitiesState extends State<ManageCities> {
+  void navigateToAddCitiesPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddCitiesPage()),
+    );
+  }
+
+  void showDeleteDialog(String cityName) {
+    showDialog(
       context: context,
-      isScrollControlled: true,
       builder: (BuildContext context) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          child: SingleChildScrollView(
-            child: AddCitiesBottomDrawer(),
-          ),
+        return AlertDialog(
+          title: Text("Delete City"),
+          content: Text("Do you want to delete $cityName?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  cities.removeWhere((city) => city["name"] == cityName);
+                });
+                Navigator.of(context).pop();
+              },
+              child: Text("Delete"),
+            ),
+          ],
         );
       },
     );
   }
 
-  // Function to generate a city button
   Widget buildCityButton(String cityName, double temperature) {
     return GestureDetector(
       onLongPress: () {
-        // Handle long press (e.g., show a delete button)
+        showDeleteDialog(cityName);
       },
+      onTap: () {},
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 10.0),
         padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 10.0),
@@ -77,8 +100,8 @@ class _Manage_CitiesState extends State<Manage_Cities> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> cities = [];
-    cities.add({"name": widget.cityName, "temperature": widget.temperature});
+    if (cities.length == 0){
+      cities.add({"name": widget.cityName, "temperature": widget.temperature});}
 
     return Scaffold(
       appBar: AppBar(
@@ -93,26 +116,31 @@ class _Manage_CitiesState extends State<Manage_Cities> {
         ),
         actions: [
           IconButton(
-            onPressed: showAddCitiesBottomDrawer,
+            onPressed: navigateToAddCitiesPage,
             icon: Icon(Icons.add),
           )
         ],
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: SingleChildScrollView(
-          child: Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              children: [
-                SizedBox(height: 10.0),
-                for (int i = 0; i < (cities.length); i++)
-                  buildCityButton(cities[i]["name"], cities[i]["temperature"]),
-                SizedBox(height: 10.0),
-              ],
-            ),
+      body: SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+            children: [
+              SizedBox(height: 10.0),
+              for (int i = 0; i < cities.length; i++)
+                buildCityButton(
+                  cities[i]["name"],
+                  cities[i]["temperature"],
+                ),
+              /*ListView.builder(
+                  itemCount: cities.length, itemBuilder: (context, index) {
+                return buildCityButton(
+                    cities[index]["name"],
+                    cities[index]["temperature"]);
+              }),*/
+              SizedBox(height: 10.0),
+            ],
           ),
         ),
       ),
@@ -120,14 +148,14 @@ class _Manage_CitiesState extends State<Manage_Cities> {
   }
 }
 
-class AddCitiesBottomDrawer extends StatefulWidget {
+class AddCitiesPage extends StatefulWidget {
   @override
-  _AddCitiesBottomDrawerState createState() => _AddCitiesBottomDrawerState();
+  _AddCitiesPageState createState() => _AddCitiesPageState();
 }
 
-class _AddCitiesBottomDrawerState extends State<AddCitiesBottomDrawer> {
+class _AddCitiesPageState extends State<AddCitiesPage> {
   TextEditingController _searchController = TextEditingController();
-  List<String> allCities = [];
+  List<Map<String, dynamic>> allCities = [];
   List<String> filteredCities = [];
   final String apiKey = '418e2fa8d6411ce63ca657ad379712fb';
 
@@ -144,17 +172,21 @@ class _AddCitiesBottomDrawerState extends State<AddCitiesBottomDrawer> {
           'http://api.openweathermap.org/data/2.5/find?q=&type=like&sort=population&cnt=30&appid=${apiKey}',
         ),
       );
+      print('Search API response: $response');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final List<String> fetchedCities = (data['list'] as List)
-            .map((city) => city['name'].toString())
+        final List<Map<String, dynamic>> fetchedCities = (data['list'] as List)
+            .map((city) => {
+                  "name": city['name'].toString(),
+                  "temperature": city['main']['temp'].toDouble(),
+                })
             .toList();
 
         setState(() {
           allCities.clear();
           allCities.addAll(fetchedCities);
-          filteredCities = List.from(allCities);
+          filteredCities = List.from(allCities.map((city) => city["name"]));
         });
       } else {
         throw Exception('Failed to load cities');
@@ -185,47 +217,59 @@ class _AddCitiesBottomDrawerState extends State<AddCitiesBottomDrawer> {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                margin: const EdgeInsets.all(5.0),
-                padding: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15.0),
-                  color: Colors.white,
-                ),
-                width: size.width,
-                height: size.height / 12,
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (query) {
-                    searchCities(query);
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Search',
-                    prefixIcon: Icon(Icons.search),
+        child: Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  margin: const EdgeInsets.all(5.0),
+                  padding: const EdgeInsets.all(10.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15.0),
+                    color: Colors.white,
+                  ),
+                  width: size.width,
+                  height: size.height / 12,
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (query) {
+                      searchCities(query);
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search',
+                      prefixIcon: Icon(Icons.search),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 10.0),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.6,
-                child: ListView.builder(
-                  itemCount: filteredCities.length,
-                  itemBuilder: (context, index) {
-                    return CityButton(
-                      city: filteredCities[index],
-                      onCitySelected: () {
-                        print(filteredCities[index]);
-                        Navigator.pop(context);
+                SizedBox(height: 10.0),
+                Container(
+                  height: MediaQuery.of(context).size.height * 0.6,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.6,
+                    ),
+                    child: ListView.builder(
+                      itemCount: filteredCities.length,
+                      itemBuilder: (context, index) {
+                        return CityButton(
+                          city: filteredCities[index],
+                          onCitySelected: () {
+                            setState(() {
+                              cities.add({
+                                'name': filteredCities[index],
+                                'temperature': 273.15
+                              });
+                            });
+                            Navigator.pop(context);
+                          },
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -245,7 +289,6 @@ class CityButton extends StatelessWidget {
       padding: const EdgeInsets.all(7.0),
       child: ElevatedButton(
         onPressed: () {
-          print('CityButton pressed for city: $city');
           onCitySelected();
         },
         style: ElevatedButton.styleFrom(
